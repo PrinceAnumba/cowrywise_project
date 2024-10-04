@@ -1,18 +1,23 @@
 <template>
   <img alt="Vue logo" src="./assets/logo.png">
   <HelloWorld msg="Welcome to Your Vue.js App"/>
+  <!-- Render the Velt component here -->
+  <VeltComponent />
 </template>
 
 <script>
 import HelloWorld from './components/HelloWorld.vue'
+import VeltComponent from './components/VeltComponent.vue';
 
 export default {
   name: 'App',
   components: {
-    HelloWorld
+    HelloWorld,
+    VeltComponent
   }
 }
 </script>
+
 
 <style>
 #app {
