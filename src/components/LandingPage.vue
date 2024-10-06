@@ -1,26 +1,39 @@
 <template>
     <div class="w-full px-6">
-        <!-- Centered Search Bar -->
-        <div
-            class="search-bar bg-white shadow-lg p-4 mb-8 rounded-lg flex items-center relative z-10 mx-auto max-w-4xl">
-            <span class="material-symbols-outlined text-gray-400 font-semibold">search</span>
-            <input v-model="searchQuery" @keyup.enter="fetchPhotos" type="text" placeholder="Search for photo"
-                class="w-full text-gray-700 focus:outline-none pl-4 font-semibold text-base placeholder-gray-400" />
+        <!-- Centered Search Bar or Search Results Text -->
+        <div class="mb-8">
+            <!-- Conditionally show the search bar or the search results text -->
+            <div v-if="showSearchBar"
+                class="search-bar bg-white shadow-lg p-4 rounded-lg flex items-center relative z-10 mx-auto max-w-4xl">
+                <span class="material-symbols-outlined text-gray-400 font-semibold">search</span>
+                <input v-model="searchQuery" @keyup.enter="initiateSearch" type="text" placeholder="Search for photo"
+                    class="w-full text-gray-700 focus:outline-none pl-4 font-semibold text-base placeholder-gray-400" />
+            </div>
+
+            <!-- Search results text and Back button -->
+            <div v-else class="flex justify-between items-center">
+                <p class="text-2xl text-sky-700 font-semibold">Search results for "{{ searchQuery }}"</p>
+                <button @click="resetSearch" class="text-blue-500 hover:underline">Back to Search</button>
+            </div>
         </div>
 
         <!-- Photo Grid (Tailwind Grid Layout) -->
         <div ref="masonryGrid" class="grid-container">
-            <div v-for="photo in photos" :key="photo.id" @click="openModal(photo)"
-                class="relative group rounded-lg overflow-hidden masonry-item  w-full sm:w-[calc(48% - 10px)] lg:w-[calc(31% - 10px)] cursor-pointer">
+            <div v-for="(photo, index) in photos" :key="photo.id" @click="openModal(photo)"
+                class="relative group rounded-lg overflow-hidden masonry-item w-full sm:w-[calc(48% - 10px)] lg:w-[calc(31% - 10px)] cursor-pointer">
+
+                <!-- Loading Placeholder with Random Height -->
+                <LoadingPlaceholder v-if="loadingImages[index]" :height="randomHeights[index]" class="z-70" />
+
                 <!-- Image -->
-                <img :src="photo.urls.regular" :alt="photo.alt_description"
+                <img v-else :src="photo.urls.regular" :alt="photo.alt_description"
                     class="w-full h-auto object-cover transition-transform duration-300 ease-in-out group-hover:scale-105" />
 
                 <!-- Tint Overlay -->
                 <div class="absolute inset-0 bg-black opacity-30 group-hover:opacity-40 transition-opacity"></div>
 
                 <!-- Text Overlay with Dark Background (Matching the Image) -->
-                <div
+                <div v-if="!loadingImages[index]"
                     class="absolute bottom-0 left-0 w-full bg-gradient-to-t flex flex-col items-start from-black to-transparent p-4">
                     <p class="text-base font-semibold text-white">{{ photo.user.name }}</p>
                     <p class="text-xs text-gray-300">{{ photo.location?.name || 'Unknown location' }}</p>
@@ -34,11 +47,10 @@
             <button @click="closeModal"
                 class="absolute top-12 right-12 text-slate-300 text-2xl font-bold cursor-pointer">&times;</button>
 
-            <div class="bg-white  rounded-lg relative max-w-lg w-full">
-
+            <div class="bg-white rounded-lg relative max-w-lg w-full">
                 <!-- Image in Modal -->
                 <img :src="selectedPhoto.urls.regular" :alt="selectedPhoto.alt_description"
-                    class="w-full h-auto object-cover max-h-[80vh]" />
+                    class="w-full h-auto object-cover max-h-[80vh] rounded-t-lg" />
 
                 <!-- Image Description -->
                 <div class="mt-4 text-left p-6">
@@ -49,9 +61,9 @@
         </div>
 
         <!-- Loading Indicator -->
-        <LoadingPlaceholder v-if="loading" />
     </div>
 </template>
+
 
 <script>
 import axios from 'axios';
@@ -67,14 +79,15 @@ export default {
         return {
             searchQuery: 'Africans', // Default search query
             photos: [],
-            loading: true,
+            loadingImages: [], // Array to manage individual image loading states
+            randomHeights: [], // Array to store random heights for loading placeholders
             masonry: null, // For the Masonry instance
             selectedPhoto: null, // To store the selected photo for modal
+            showSearchBar: true, // Controls the visibility of the search bar
         };
     },
     methods: {
         async fetchPhotos() {
-            this.loading = true;
             try {
                 const response = await axios.get('https://api.unsplash.com/search/photos', {
                     params: {
@@ -84,14 +97,17 @@ export default {
                     },
                 });
                 this.photos = response.data.results;
-                this.$nextTick(() => {
-                    // Initialize or reload Masonry after DOM has been updated with images
-                    this.initializeMasonry();
-                });
-                this.loading = false;
+                this.loadingImages = Array(this.photos.length).fill(true); // Set all images to loading initially
+                this.randomHeights = this.photos.map(() => Math.floor(Math.random() * (400 - 200 + 1) + 200)); // Random heights between 200 and 400
+
+                setTimeout(() => {
+                    this.loadingImages = this.loadingImages.map(() => false); // Set all loading flags to false after a delay
+                    this.$nextTick(() => {
+                        this.initializeMasonry(); // Initialize Masonry after images are loaded
+                    });
+                }, 10000);
             } catch (error) {
                 console.error('Error fetching photos:', error);
-                this.loading = false;
             }
         },
         initializeMasonry() {
@@ -115,12 +131,21 @@ export default {
         closeModal() {
             this.selectedPhoto = null; // Clear the selected photo and close the modal
         },
+        initiateSearch() {
+            this.fetchPhotos(); // Fetch photos when search is initiated
+            this.showSearchBar = false; // Hide the search bar and show the "Search results for ..." text
+        },
+        resetSearch() {
+            this.showSearchBar = true; // Show the search bar again
+            this.photos = []; // Clear the photos
+        },
     },
     mounted() {
         this.fetchPhotos(); // Fetch initial photos on mount
     },
 };
 </script>
+
 
 <style scoped>
 .grid-container {
