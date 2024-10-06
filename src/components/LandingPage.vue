@@ -10,7 +10,8 @@
 
         <!-- Photo Grid (Tailwind Grid Layout) -->
         <div ref="masonryGrid" class="grid-container">
-            <div v-for="photo in photos" :key="photo.id" class="relative group rounded-lg overflow-hidden masonry-item">
+            <div v-for="photo in photos" :key="photo.id" @click="openModal(photo)"
+                class="relative group rounded-lg overflow-hidden masonry-item  w-full sm:w-[calc(48% - 10px)] lg:w-[calc(31% - 10px)] cursor-pointer">
                 <!-- Image -->
                 <img :src="photo.urls.regular" :alt="photo.alt_description"
                     class="w-full h-auto object-cover transition-transform duration-300 ease-in-out group-hover:scale-105" />
@@ -19,9 +20,30 @@
                 <div class="absolute inset-0 bg-black opacity-30 group-hover:opacity-40 transition-opacity"></div>
 
                 <!-- Text Overlay with Dark Background (Matching the Image) -->
-                <div class="absolute bottom-0 left-0 w-full bg-gradient-to-t flex flex-col items-start  from-black to-transparent p-4">
+                <div
+                    class="absolute bottom-0 left-0 w-full bg-gradient-to-t flex flex-col items-start from-black to-transparent p-4">
                     <p class="text-base font-semibold text-white">{{ photo.user.name }}</p>
                     <p class="text-xs text-gray-300">{{ photo.location?.name || 'Unknown location' }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal for Image Preview -->
+        <div v-if="selectedPhoto" class="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50">
+            <!-- Close Button -->
+            <button @click="closeModal"
+                class="absolute top-12 right-12 text-slate-300 text-2xl font-bold cursor-pointer">&times;</button>
+
+            <div class="bg-white  rounded-lg relative max-w-lg w-full">
+
+                <!-- Image in Modal -->
+                <img :src="selectedPhoto.urls.regular" :alt="selectedPhoto.alt_description"
+                    class="w-full h-auto object-cover max-h-[80vh]" />
+
+                <!-- Image Description -->
+                <div class="mt-4 text-left p-6">
+                    <p class="text-lg font-semibold">{{ selectedPhoto.user.name }}</p>
+                    <p class="text-sm text-gray-600">{{ selectedPhoto.location?.name || 'Unknown location' }}</p>
                 </div>
             </div>
         </div>
@@ -37,7 +59,7 @@ import Masonry from 'masonry-layout';
 import LoadingPlaceholder from './LoadingPlaceholder.vue';
 
 export default {
-    name: 'MasonryLayout',
+    name: 'LandingPage',
     components: {
         LoadingPlaceholder,
     },
@@ -47,6 +69,7 @@ export default {
             photos: [],
             loading: true,
             masonry: null, // For the Masonry instance
+            selectedPhoto: null, // To store the selected photo for modal
         };
     },
     methods: {
@@ -86,6 +109,12 @@ export default {
                 this.masonry.layout();
             }
         },
+        openModal(photo) {
+            this.selectedPhoto = photo; // Set the clicked photo to selectedPhoto
+        },
+        closeModal() {
+            this.selectedPhoto = null; // Clear the selected photo and close the modal
+        },
     },
     mounted() {
         this.fetchPhotos(); // Fetch initial photos on mount
@@ -112,6 +141,32 @@ export default {
     display: block;
     width: 100%;
     height: auto;
+    cursor: pointer;
+    /* Make the cursor a pointer on hover */
+}
+
+/* Mobile: Single column */
+@media (max-width: 640px) {
+    .masonry-item {
+        width: 100%;
+        /* Full width on mobile */
+    }
+}
+
+/* Tablet: 2 columns */
+@media (min-width: 640px) and (max-width: 1024px) {
+    .masonry-item {
+        width: calc(48% - 10px);
+        /* Two columns on tablet */
+    }
+}
+
+/* Desktop: 3 columns */
+@media (min-width: 1024px) {
+    .masonry-item {
+        width: calc(31% - 10px);
+        /* Three columns on larger screens */
+    }
 }
 
 .search-bar {
@@ -122,5 +177,21 @@ export default {
 
 .bg-gradient-to-t {
     background-image: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+}
+
+/* Modal Styles */
+.fixed {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bg-opacity-75 {
+    backdrop-filter: blur(10px);
+}
+
+button {
+    border: none;
+    background: none;
 }
 </style>
