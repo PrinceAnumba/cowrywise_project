@@ -1,7 +1,7 @@
 <template>
   <div id="root" class="relativ w-full">
     <div class="w-full h-60 bg-[#DDE2E9]  -z-10"></div>
-    <div id="app" class="z-10 absolute top-32 w-full px-12 flex  justify-center items-center">
+    <div id="app" class="z-10 absolute top-28 w-full px-12 flex  justify-center items-center">
       <LandingPage class="landing " :photos="photos" @image-click="openImageModal" />
       <ImageModal v-if="selectedPhoto" :photo="selectedPhoto" @close-modal="selectedPhoto = null" />
     </div>
