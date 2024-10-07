@@ -1,56 +1,37 @@
 <template>
-    <div class="search-results">
-        <div v-if="loading">
-            <LoadingPlaceholder v-for="n in 8" :key="n" />
+    <div>
+        <div class="flex justify-between items-center mb-8">
+            <p class="text-2xl text-sky-700 font-semibold">Search results for "{{ searchQuery }}"</p>
+            <button @click="$emit('reset')" class="text-blue-500 hover:underline">Back to Search</button>
         </div>
-        <div v-else class="photo-grid">
-            <ImageCard v-for="photo in photos" :key="photo.id" :photo="photo" />
+        <div v-if="noResultsFound" class="text-center text-red-500 text-xl font-semibold mt-8">
+            No results found for "{{ searchQuery }}". Please try again with a different search term.
+        </div>
+        <div ref="masonryGrid" class="grid-container">
+            <ImageCard v-for="(photo, index) in photos" :key="photo.id" :photo="photo" :loading="loadingImages[index]"
+                :height="randomHeights[index]" @click="openModal(photo)" />
         </div>
     </div>
 </template>
 
 <script>
-import axios from 'axios';
 import ImageCard from './ImageCard.vue';
-import LoadingPlaceholder from './LoadingPlaceholder.vue';
 
 export default {
-    name: 'SearchResults',
-    components: { ImageCard, LoadingPlaceholder },
-    props: ['searchQuery'],
-    data() {
-        return {
-            photos: [],
-            loading: true,
-        };
+    props: {
+        photos: Array,
+        loadingImages: Array,
+        randomHeights: Array,
+        searchQuery: String,
+        noResultsFound: Boolean,
     },
-    watch: {
-        searchQuery: 'fetchPhotos',
+    components: {
+        ImageCard,
     },
     methods: {
-        async fetchPhotos() {
-            this.loading = true;
-            try {
-                const response = await axios.get('https://api.unsplash.com/search/photos', {
-                    params: {
-                        query: this.searchQuery,
-                        client_id: process.env.VUE_APP_UNSPLASH_ACCESS_KEY, // Replace with your Unsplash API Key
-                    },
-                });
-                this.photos = response.data.results;
-                this.loading = false;
-            } catch (error) {
-                console.error(error);
-            }
+        openModal(photo) {
+            this.$emit('open-modal', photo);
         },
     },
 };
 </script>
-
-<style scoped>
-.photo-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 10px;
-}
-</style>

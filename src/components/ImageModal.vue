@@ -1,77 +1,49 @@
+
 <template>
-    <div class="landing-page ">
-        <div class="grid">
-            <ImageCard v-for="photo in photos" :key="photo.id" :photo="photo" @open-modal="openModal" />
+    <div class="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50">
+        <button @click="closeModal" class="absolute top-12 right-12 text-slate-300 text-2xl font-bold cursor-pointer">
+            &times;
+        </button>
+
+        <div class="bg-white rounded-lg relative max-w-lg w-full">
+            <img :src="photo.urls.regular" :alt="photo.alt_description"
+                class="w-full h-auto object-cover max-h-[80vh] rounded-t-lg" />
+
+            <div class="mt-4 text-left p-6">
+                <p class="text-lg font-semibold">{{ photo.user.name }}</p>
+                <p class="text-sm text-gray-600">{{ photo.location?.name || 'Unknown location' }}</p>
+            </div>
         </div>
-
-        <ImageModal v-if="selectedPhoto" :photo="selectedPhoto" @close-modal="closeModal" />
-
-        <LoadingPlaceholder v-if="loading" />
     </div>
 </template>
 
 <script>
-import ImageCard from './ImageCard.vue';
-import ImageModal from './ImageModal.vue';
-import LoadingPlaceholder from './LoadingPlaceholder.vue';
-import axios from 'axios';
-
 export default {
-    name: 'LandingPage',
-    components: { ImageCard, ImageModal, LoadingPlaceholder },
-    data() {
-        return {
-            photos: [],
-            loading: true,
-            selectedPhoto: null,
-        };
-    },
-    mounted() {
-        this.fetchPhotos();
+    name: 'ImageModal',
+    props: {
+        photo: Object,
     },
     methods: {
-        async fetchPhotos() {
-            try {
-                const response = await axios.get('https://api.unsplash.com/photos/random', {
-                    params: {
-                        query: 'Africa',
-                        count: 8,
-                        client_id: process.env.VUE_APP_UNSPLASH_API_KEY,
-                    },
-                });
-                this.photos = response.data;
-                this.loading = false;
-            } catch (error) {
-                console.error(error);
-            }
-        },
-        openModal(photo) {
-            this.selectedPhoto = photo;
-        },
         closeModal() {
-            this.selectedPhoto = null;
+            this.$emit('close');
         },
     },
 };
 </script>
 
 <style scoped>
-.landing-page {
-    padding: 20px;
+.fixed {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    grid-auto-rows: 10px;
-    grid-gap: 15px;
+.bg-opacity-75 {
+    backdrop-filter: blur(10px);
 }
 
-.grid>* {
-    transition: transform 0.3s;
-}
-
-.grid>*:hover {
-    transform: scale(1.03);
+button {
+    border: none;
+    background: none;
 }
 </style>

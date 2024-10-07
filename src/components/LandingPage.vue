@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full px-6">
+    <div class="w-full">
         <!-- Centered Search Bar or Search Results Text -->
         <div class="mb-8">
             <!-- Conditionally show the search bar or the search results text -->
@@ -15,6 +15,11 @@
                 <p class="text-2xl text-sky-700 font-semibold">Search results for "{{ searchQuery }}"</p>
                 <button @click="resetSearch" class="text-blue-500 hover:underline">Back to Search</button>
             </div>
+        </div>
+
+        <!-- Conditionally display no results message -->
+        <div v-if="noResultsFound" class="text-center text-red-500 text-xl font-semibold mt-8">
+            No results found for "{{ searchQuery }}". Please try again with a different search term.
         </div>
 
         <!-- Photo Grid (Tailwind Grid Layout) -->
@@ -68,6 +73,7 @@
 <script>
 import axios from 'axios';
 import Masonry from 'masonry-layout';
+import imagesLoaded from 'imagesloaded';
 import LoadingPlaceholder from './LoadingPlaceholder.vue';
 
 export default {
@@ -84,6 +90,7 @@ export default {
             masonry: null, // For the Masonry instance
             selectedPhoto: null, // To store the selected photo for modal
             showSearchBar: true, // Controls the visibility of the search bar
+            noResultsFound: false, // Manage state when no results are found
         };
     },
     methods: {
@@ -92,38 +99,53 @@ export default {
                 const response = await axios.get('https://api.unsplash.com/search/photos', {
                     params: {
                         query: this.searchQuery,
-                        per_page: 15, // Number of images
-                        client_id: process.env.VUE_APP_UNSPLASH_ACCESS_KEY, // Unsplash API Key
+                        per_page: 15,
+                        client_id: process.env.VUE_APP_UNSPLASH_ACCESS_KEY,
                     },
                 });
+
                 this.photos = response.data.results;
-                this.loadingImages = Array(this.photos.length).fill(true); // Set all images to loading initially
-                this.randomHeights = this.photos.map(() => Math.floor(Math.random() * (400 - 200 + 1) + 200)); // Random heights between 200 and 400
+
+                // Check if no photos were found
+                if (this.photos.length === 0) {
+                    this.noResultsFound = true; // Set the no-results flag
+                } else {
+                    this.noResultsFound = false; // Reset the flag if results are found
+                }
+
+                this.loadingImages = Array(this.photos.length).fill(true);
+                this.randomHeights = this.photos.map(() => Math.floor(Math.random() * (400 - 200 + 1) + 200));
 
                 setTimeout(() => {
-                    this.loadingImages = this.loadingImages.map(() => false); // Set all loading flags to false after a delay
+                    this.loadingImages = this.loadingImages.map(() => false);
                     this.$nextTick(() => {
-                        this.initializeMasonry(); // Initialize Masonry after images are loaded
+                        this.initializeMasonry();
                     });
-                }, 10000);
+                }, 1000);
             } catch (error) {
                 console.error('Error fetching photos:', error);
             }
         },
+
+
         initializeMasonry() {
-            if (!this.masonry) {
-                // Initialize the Masonry grid
-                this.masonry = new Masonry(this.$refs.masonryGrid, {
-                    itemSelector: '.masonry-item',
-                    columnWidth: '.masonry-item',
-                    gutter: 20, // Adjust for space between items
-                    percentPosition: true,
-                });
-            } else {
-                // Reload Masonry if it already exists
-                this.masonry.reloadItems();
-                this.masonry.layout();
-            }
+            const grid = this.$refs.masonryGrid;
+
+            imagesLoaded(grid, () => {
+                if (!this.masonry) {
+                    // Initialize Masonry only once after images are loaded
+                    this.masonry = new Masonry(grid, {
+                        itemSelector: '.masonry-item',
+                        columnWidth: '.masonry-item',
+                        gutter: 20, // Space between items
+                        percentPosition: true,
+                    });
+                } else {
+                    // Reload Masonry if already initialized
+                    this.masonry.reloadItems();
+                    this.masonry.layout();
+                }
+            });
         },
         openModal(photo) {
             this.selectedPhoto = photo; // Set the clicked photo to selectedPhoto
@@ -134,7 +156,9 @@ export default {
         initiateSearch() {
             this.fetchPhotos(); // Fetch photos when search is initiated
             this.showSearchBar = false; // Hide the search bar and show the "Search results for ..." text
+            this.noResultsFound = false; // Reset no results flag when starting a new search
         },
+
         resetSearch() {
             this.showSearchBar = true; // Show the search bar again
             this.photos = []; // Clear the photos
