@@ -1,5 +1,5 @@
 <template>
-    <div class="w-full">
+    <div class="w-full ">
         <!-- Centered Search Bar or Search Results Text -->
         <div class="mb-8">
             <!-- Conditionally show the search bar or the search results text -->
@@ -47,12 +47,12 @@
         </div>
 
         <!-- Modal for Image Preview -->
-        <div v-if="selectedPhoto" class="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-50">
+        <div v-if="selectedPhoto" class="fixed inset-0 bg-black bg-opacity-75 flex justify-center items-center z-30">
             <!-- Close Button -->
             <button @click="closeModal"
-                class="absolute top-12 right-12 text-slate-300 text-2xl font-bold cursor-pointer">&times;</button>
+                class="absolute top-12 right-12 text-slate-100 z-50 text-4xl font-bold cursor-pointer">&times;</button>
 
-            <div class="bg-white rounded-lg relative max-w-lg w-full">
+            <div class="bg-white rounded-lg relative z-70 max-w-lg w-full">
                 <!-- Image in Modal -->
                 <img :src="selectedPhoto.urls.regular" :alt="selectedPhoto.alt_description"
                     class="w-full h-auto object-cover max-h-[80vh] rounded-t-lg" />
@@ -154,10 +154,10 @@ export default {
             this.selectedPhoto = null; // Clear the selected photo and close the modal
         },
         initiateSearch() {
-            this.fetchPhotos(); // Fetch photos when search is initiated
-            this.showSearchBar = false; // Hide the search bar and show the "Search results for ..." text
-            this.noResultsFound = false; // Reset no results flag when starting a new search
-        },
+    this.fetchPhotos(); // Fetch photos when search is initiated
+    this.showSearchBar = false; // Hide the search bar and show the "Search results for ..." text
+    this.noResultsFound = false; // Reset no results flag when starting a new search
+},
 
         resetSearch() {
             this.showSearchBar = true; // Show the search bar again

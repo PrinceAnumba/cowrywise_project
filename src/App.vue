@@ -3,21 +3,18 @@
     <div class="w-full h-60 bg-[#DDE2E9]  -z-10"></div>
     <div id="app" class="z-10 absolute top-28 w-full px-12 flex  justify-center items-center">
       <LandingPage class="landing " :photos="photos" @image-click="openImageModal" />
-      <ImageModal v-if="selectedPhoto" :photo="selectedPhoto" @close-modal="selectedPhoto = null" />
     </div>
   </div>
 </template>
 
 <script>
 import LandingPage from './components/LandingPage.vue';
-import ImageModal from './components/ImageModal.vue';
 import axios from 'axios'; // Import axios to make the API call
 
 export default {
   name: 'App',
   components: {
     LandingPage,
-    ImageModal,
   },
   data() {
     return {
@@ -56,8 +53,5 @@ export default {
 
 .landing {
   max-width: 1280px;
-}
-
-#root {
 }
 </style>
