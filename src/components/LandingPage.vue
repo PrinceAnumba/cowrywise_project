@@ -41,7 +41,7 @@
                 <div v-if="!loadingImages[index]"
                     class="absolute bottom-0 left-0 w-full bg-gradient-to-t flex flex-col items-start from-black to-transparent p-4">
                     <p class="text-base font-semibold text-white">{{ photo.user.name }}</p>
-                    <p class="text-xs text-gray-300">{{ photo.location?.name || 'Unknown location' }}</p>
+                    <p class="text-xs text-gray-300">{{ photo.user.location || 'Unknown location' }}</p>
                 </div>
             </div>
         </div>
@@ -60,7 +60,7 @@
                 <!-- Image Description -->
                 <div class="mt-4 text-left p-6">
                     <p class="text-lg font-semibold">{{ selectedPhoto.user.name }}</p>
-                    <p class="text-sm text-gray-600">{{ selectedPhoto.location?.name || 'Unknown location' }}</p>
+                    <p class="text-sm text-gray-600">{{ selectedPhoto.user.location || 'Unknown location' }}</p>
                 </div>
             </div>
         </div>
@@ -105,6 +105,7 @@ export default {
                 });
 
                 this.photos = response.data.results;
+                console.log(this.photos)
 
                 // Check if no photos were found
                 if (this.photos.length === 0) {
